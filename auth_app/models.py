@@ -1,11 +1,8 @@
-import uuid
-
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 
 from django.db import models
 
 # Create your models here.
-
 
 class UserManager(BaseUserManager):
     def create_user(self, fullname, email, username, password=None, **kwargs):
@@ -48,7 +45,7 @@ class UserManager(BaseUserManager):
         return user
 
 
-class User(AbstractBaseUser):
+class User(AbstractBaseUser, PermissionsMixin):
     fullname = models.CharField(max_length=300)
     username = models.CharField(db_index=True, max_length=255, unique=True)
     email = models.EmailField(db_index=True, unique=True)
