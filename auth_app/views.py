@@ -7,7 +7,8 @@ from django.utils.crypto import get_random_string
 
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.decorators import api_view, action
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view, action, permission_classes
 
 from djoser.views import UserViewSet as DjoserUserViewSet
 from djoser.serializers import UsernameSerializer, PasswordSerializer
@@ -48,10 +49,14 @@ class CustomUserViewSet(DjoserUserViewSet):
 
 
 @api_view(['GET', 'POST'])
-def user_otp(request, id):
-    user = get_object_or_404(User, id=id)
-    
+@permission_classes([IsAuthenticated])
+def user_otp(request, id):    
     if request.method == 'GET':
+        email = request.query_params.get("email")
+
+        if not email:
+            return Response({"error": "Email is required"}, status=status.HTTP_400_BAD_REQUEST)
+
         if 'otp' in request.session:
             del request.session['otp']
 
@@ -61,12 +66,12 @@ def user_otp(request, id):
             'otp': otp,
             'expiry_time': int(time.time()) + 60  # OTP expires after 60 seconds
         }
-        
+
         send_mail(
             'Your OTP',
             f'Your OTP is: {otp}',
             'lawalmuhammed44@gmail.com',
-            [user.email],
+            [email],
             fail_silently=False,
         )
         return Response({'message': 'OTP sent to user'}, status=status.HTTP_200_OK)
