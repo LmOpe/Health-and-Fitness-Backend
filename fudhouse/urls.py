@@ -17,11 +17,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include, re_path
 
-from auth_app.views import CustomUserViewSet
-
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path('api/v1/', include("auth_app.urls")),
     re_path(r"^auth/", include("djoser.urls")),
     re_path(r"^auth/", include("djoser.urls.jwt")),
-    path('auth/<int:id>/', CustomUserViewSet.as_view({'delete': 'destroy'}), name='user-detail'),
 ]
