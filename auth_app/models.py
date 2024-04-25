@@ -27,19 +27,10 @@ class UserManager(BaseUserManager):
         return user
 
     def create_superuser(self, fullname, username, email, password, **kwargs):
-        if fullname is None:
-            raise TypeError("Superuser must have a fullname.")
-        if password is None:
-            raise TypeError("Superuser must have a password.")
-        if email is None:
-            raise TypeError("Superuser must have an email.")
-        if username is None:
-            raise TypeError("Superuser must have an username.")
-
         user = self.create_user(fullname, email, username, password, **kwargs)
         user.is_superuser = True
         user.is_staff = True
-        is_active = True
+        user.is_active = True
         user.save(using=self._db)
 
         return user
@@ -62,4 +53,4 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     def __str__(self):
-        return f"{self.email}"
+        return f"{self.email} -- {self.fullname}"
