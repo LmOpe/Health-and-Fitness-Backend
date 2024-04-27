@@ -22,8 +22,6 @@ urlpatterns = [
     path('api/v1/', include("auth_app.urls")),
     re_path(r"^auth/", include("djoser.urls")),
     re_path(r"^auth/", include("djoser.urls.jwt")),
-     re_path(r'^social-auth/', include('drf_social_oauth2.urls', namespace='drf')),
-
     # DJDT
     path("__debug__/", include("debug_toolbar.urls")),
 ]

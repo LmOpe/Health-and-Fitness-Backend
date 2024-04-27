@@ -12,7 +12,6 @@ djangorestframework-simplejwt = "==5.2.2"
 djangorestframework = "==3.14"
 python-environ = "==0.4.54"
 psycopg2 = "==2.9.9"
-drf-social-oauth2 = "==2.1.3"
 
 [dev-packages]
 

@@ -48,9 +48,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
-    'oauth2_provider',
-    'social_django',
-    'drf_social_oauth2',
     "debug_toolbar",
     "djoser",
     "auth_app",
@@ -152,45 +149,17 @@ INTERNAL_IPS = [
     "127.0.0.1",
 ]
 
-AUTHENTICATION_BACKENDS = (
-    # # Facebook OAuth2
-    # 'social_core.backends.facebook.FacebookAppOAuth2',
-    # 'social_core.backends.facebook.FacebookOAuth2',
-
-    # Google  OAuth2
-    'social_core.backends.google.GoogleOAuth2',
-
-    # drf_social_oauth2
-    'drf_social_oauth2.backends.DjangoOAuth2',
-
-    # Django
-    'django.contrib.auth.backends.ModelBackend',
-)
-
-# Facebook configuration
-#SOCIAL_AUTH_FACEBOOK_KEY = '<your app id goes here>'
-#SOCIAL_AUTH_FACEBOOK_SECRET = '<your app secret goes here>'
-
-# SOCIAL_AUTH_FACEBOOK_SCOPE = ['email']
-# SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {
-#     'fields': 'id, name, email'
-# }
-
 # Google configuration
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = env("GOOGLE_ID")
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = env("GOOGLE_SECRET")
 
-# Define SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE to get extra permissions from Google.
-SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
-    'https://www.googleapis.com/auth/userinfo.email',
-    'https://www.googleapis.com/auth/userinfo.profile',
-]
+
+SOCIAL_AUTH_TWITTER_OAUTH2_KEY = env("TWITTER_ID")
+SOCIAL_AUTH_TWITTER_OAUTH2_SECRET = env("TWITTER_SECRET") 
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
-        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',  # django-oauth-toolkit >= 1.0.0
-        'drf_social_oauth2.authentication.SocialAuthentication',
     )
 }
 

@@ -21,7 +21,7 @@ from djoser.serializers import UsernameSerializer, PasswordSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import User
-from fudhouse.utils import hash_to_smaller_int
+from fudhouse.utils import hash_to_smaller_int, base64_encode
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -176,7 +176,7 @@ class GoogleRedirectURIView(APIView):
                         # Proceed with user creation or login
 
                         uid = hash_to_smaller_int(profile_data['id'])
-                        print(uid)
+                      
                         try:
                             user = User.objects.get(id=uid)
                             
@@ -184,15 +184,94 @@ class GoogleRedirectURIView(APIView):
                             data['access'] = str(refresh.access_token)
                             data['refresh'] = str(refresh)
                             data['user_id'] = str(user.id)
-                            return Response(data, status.HTTP_201_CREATED)
+                            return Response(data, status.HTTP_200_OK)
 
                         except User.DoesNotExist:
                             user = User.objects.create_user(id=uid,fullname=profile_data['name'], username=profile_data['name'],
-                                                        email="NIL", password="NIL", is_active=True)
+                                                email=f"{profile_data['email']}-{uid}", password='NIL', is_active=True)
                     
                         refresh = RefreshToken.for_user(user)
                         data['access'] = str(refresh.access_token)
                         data['refresh'] = str(refresh)
+                        data['user_id'] = str(user.id)
+                        return Response(data, status.HTTP_201_CREATED)
+        
+        return Response({}, status.HTTP_400_BAD_REQUEST)
+
+
+class TwitterAuthRedirect(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        redirect_uri = 'http://localhost:8000/api/v1/auth/twitter/signup'  # Callback URL configured in Twitter Developer Dashboard
+        auth_url = f"https://twitter.com/i/oauth2/authorize?response_type=code&client_id={settings.SOCIAL_AUTH_TWITTER_OAUTH2_KEY}&redirect_uri={redirect_uri}&scope=users.read%20tweet.read%20offline.access&state=state&code_challenge=challenge&code_challenge_method=plain"
+        
+        return redirect(auth_url)
+
+
+class TwitterRedirectURIView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        code = request.GET.get('code')
+
+        if code:
+            token_url = 'https://api.twitter.com/2/oauth2/token'
+            token_params = {
+                'code': code,
+                'grant_type': 'authorization_code',
+                'redirect_uri': 'http://localhost:8000/api/v1/auth/twitter/signup',
+                'code_verifier': 'challenge'
+            }
+
+            # Client ID and Client Secret obtained from Twitter Developer account
+            client_id = settings.SOCIAL_AUTH_TWITTER_OAUTH2_KEY
+            client_secret = settings.SOCIAL_AUTH_TWITTER_OAUTH2_SECRET
+
+            # Concatenate client ID and client secret with a colon
+            credentials = f"{client_id}:{client_secret}"
+
+            # Encode the concatenated string using Base64
+            base64_credentials = base64_encode(credentials)
+
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Authorization': f'Basic {base64_credentials}'
+            }
+
+            response = requests.post(token_url, headers=headers, data=token_params)
+
+            if response.status_code == 200:
+                access_token = response.json().get('access_token')
+                if access_token:
+                    user_info_url = 'https://api.twitter.com/2/users/me'
+                    headers = {'Authorization': f'Bearer {access_token}'}
+                    user_info_response = requests.get(user_info_url, headers=headers)
+
+                    if user_info_response.status_code == 200:
+                        data = {}
+                        user_info = user_info_response.json()['data']
+                        # Proceed with user creation or login
+                        
+                        uid = user_info['id']
+                      
+                        try:
+                            user = User.objects.get(id=uid)
+                            
+                            refresh = RefreshToken.for_user(user)
+                            data['access'] = str(refresh.access_token)
+                            data['refresh'] = str(refresh)
+                            data['user_id'] = str(user.id)
+                            return Response(data, status.HTTP_200_OK)
+
+                        except User.DoesNotExist:
+                            user = User.objects.create_user(id=uid, fullname=user_info['name'], username=user_info['username'],
+                                                            email=f"-{uid}", password='Nil', is_active=True)
+                    
+                        refresh = RefreshToken.for_user(user)
+                        data['access'] = str(refresh.access_token)
+                        data['refresh'] = str(refresh)
+                        data['user_id'] = str(user.id)
                         return Response(data, status.HTTP_201_CREATED)
         
         return Response({}, status.HTTP_400_BAD_REQUEST)

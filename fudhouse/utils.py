@@ -1,4 +1,5 @@
 import hashlib
+import base64
 
 def hash_to_smaller_int(large_int):
     # Convert the large integer to a string before hashing
@@ -14,3 +15,8 @@ def hash_to_smaller_int(large_int):
     smaller_int = hashed_int % (10 ** 9)  # Restricting to a 9-digit number
     
     return smaller_int
+
+
+def base64_encode(value):
+    # Encode the concatenated string using Base64
+    return base64.b64encode(value.encode()).decode()
