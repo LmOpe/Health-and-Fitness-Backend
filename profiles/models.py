@@ -16,3 +16,17 @@ class Profile(models.Model):
 
     def __str__(self):
         return f'{self.user.email}-{self.user.username}"s profile'
+
+
+class NotificationPreferences(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, related_name="notification_preferences")
+    meal_recommendation = models.BooleanField(default=True)
+    water_intake_reminder = models.BooleanField(default=True)
+    food_log_reminder = models.BooleanField(default=True)
+    goal_reminder = models.BooleanField(default=True)
+    healthy_eating_reminder = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f'{self.user.email}-{self.user.username}"s notification preferences'
+
+#class WaterIntake()
