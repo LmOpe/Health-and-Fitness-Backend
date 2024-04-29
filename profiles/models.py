@@ -36,7 +36,7 @@ class Date(models.Model):
     date = models.DateField(db_index=True, unique=True)
 
     def __str__(self):
-        return self.date
+        return f'{self.date}'
 
 class WaterIntake(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, \
