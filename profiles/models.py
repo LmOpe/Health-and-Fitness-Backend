@@ -3,7 +3,7 @@ from django.db import models
 from auth_app.models import User
 
 class Profile(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="profile")
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, related_name='profile')
     avatar = models.URLField(blank=True, null=True)
     nutritional_goal = models.CharField(max_length=50)
     sex = models.CharField(max_length=6)
@@ -15,4 +15,4 @@ class Profile(models.Model):
     height_unit = models.CharField(max_length=2)
 
     def __str__(self):
-        return f'{self.user.username}"s profile'
+        return f'{self.user.email}-{self.user.username}"s profile'
