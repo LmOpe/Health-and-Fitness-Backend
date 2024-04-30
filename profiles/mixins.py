@@ -33,6 +33,8 @@ class UserAssociatedMixin:
     def put(self, request):
         instance = self.get_instance()
         serializer_class = self.get_serializer_class()
+        if self.request.data["date"]:
+            self.request.data.pop("date")
         serializer = serializer_class(instance, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -41,6 +43,7 @@ class UserAssociatedMixin:
 
 class UpdateSerializerMixin(serializers.Serializer):
     def update(self, instance, validated_data):
+        print("Got to the update")
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()

@@ -32,7 +32,6 @@ class WaterIntakeRetrieveCreateUpdateAPIView(APIView, UserAssociatedMixin):
         else:
             date = self.request.data["date"]
         dateObj, created = Date.objects.get_or_create(date=date)
-        print("pass")
         return dateObj.id
 
     def post(self, request):

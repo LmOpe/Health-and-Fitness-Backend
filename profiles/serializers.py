@@ -26,9 +26,9 @@ class NotificationPreferencesSerializer(UpdateSerializerMixin, serializers.Model
         fields = '__all__'
 
 class WaterIntakeSerializer(UpdateSerializerMixin, serializers.ModelSerializer):
-        class Meta:
-            model = WaterIntake
-            fields = '__all__'
+    class Meta:
+        model = WaterIntake
+        fields = '__all__'
 
 class DateSerializer(serializers.ModelSerializer):
     date = serializers.DateField(input_formats=['%d-%m-%Y'])
