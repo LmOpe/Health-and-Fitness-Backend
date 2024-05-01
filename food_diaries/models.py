@@ -9,10 +9,17 @@ class Date(models.Model):
     def __str__(self):
         return f'{date_formatter(self.date)}'
 
-class WaterIntake(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, \
-                             related_name="water_intake", db_index=True)
+class BaseModel(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="%(class)s", db_index=True)
     date = models.ForeignKey(Date, on_delete=models.CASCADE, db_index=True)
+
+    class Meta:
+        abstract = True
+
+    def __str__(self):
+        return f"{self.__class__.__name__} on {self.date} for {self.user}"
+
+class WaterIntake(BaseModel):
     number_of_glass = models.IntegerField()
     water_goal = models.DecimalField(max_digits=5, decimal_places=2, default=0.25)
 
@@ -20,21 +27,24 @@ class WaterIntake(models.Model):
         constraints = [
             models.UniqueConstraint(fields=['user', 'date'], name='unique_user_date_waterintake')
         ]
-
-    def __str__(self):
-        return f"Water Intake on {self.date} for {self.user.username}"
-
-class Exercise(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, \
-                             related_name="exercises", db_index=True)
-    date = models.ForeignKey(Date, on_delete=models.CASCADE, db_index=True)
+class Exercise(BaseModel):
     name = models.CharField(max_length=20)
     time_spent = models.IntegerField()
-    
+
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=['user', 'date', 'name'], name='unique_user_date_name_exercise')
         ]
-    
-    def __str__(self):
-        return f"{self.name} on {self.date} for {self.user}"
+
+class Meal(BaseModel):
+    name = models.CharField()
+    servings = models.IntegerField()
+    energy = models.DecimalField(max_digits=5, decimal_places=2)
+    carbs = models.DecimalField(max_digits=5, decimal_places=2)
+    protein = models.DecimalField(max_digits=5, decimal_places=2)
+    fats = models.DecimalField(max_digits=5, decimal_places=2)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'date', 'name'], name='unique_user_date_name_meal')
+        ]

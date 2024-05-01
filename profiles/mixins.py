@@ -13,7 +13,7 @@ class UserAssociatedMixin:
     def get_serializer_class(self):
         raise NotImplementedError("You must implement get_serializer_class method.")
 
-    def getDate(self):
+    def get_date(self):
         date = None
         if self.request.method == "GET" or self.request.method == "DELETE":
             date = self.request.query_params.get("date")
@@ -28,14 +28,17 @@ class UserAssociatedMixin:
             serializer_class = self.get_serializer_class()
             serializer = serializer_class(instance)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response({"Error": "Object with user or date Not found"}, status.HTTP_404_NOT_FOUND)
+        return Response({"Error": "Object with user or date was not found"}, status.HTTP_404_NOT_FOUND)
 
-    def delete(self, request):
-        instance = self.get_instance()
+    def delete(self, request, id):
+        instance = self.get_instance(id)
         if instance:
-            instance.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response({"Error": "Object with user or date Not found"}, status.HTTP_404_NOT_FOUND)
+            if request.user == instance.user:
+                instance.delete()
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            else:
+                return Response({"Error": "You do not have permission to perform this action"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"Error": "Object with ID was not found"}, status.HTTP_404_NOT_FOUND)
 
     def post(self, request):
         user = request.user
@@ -52,11 +55,13 @@ class UserAssociatedMixin:
         serializer_class = self.get_serializer_class()
         if self.request.data["date"]:
             self.request.data.pop("date")
-        serializer = serializer_class(instance, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if instance:
+            serializer = serializer_class(instance, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"Error": "Object was not found"}, status.HTTP_404_NOT_FOUND)
 
 class UpdateSerializerMixin(serializers.Serializer):
     def update(self, instance, validated_data):
