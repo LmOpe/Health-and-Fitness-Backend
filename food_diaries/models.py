@@ -48,3 +48,10 @@ class Meal(BaseModel):
         constraints = [
             models.UniqueConstraint(fields=['user', 'date', 'name'], name='unique_user_date_name_meal')
         ]
+
+class EnergyRequired(BaseModel):
+    energy = models.DecimalField(decimal_places=2, max_digits=8)
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'date'], name='unique_user_date_energyrequired')
+        ]
