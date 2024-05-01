@@ -2,7 +2,7 @@ from datetime import datetime
 
 from rest_framework import serializers
 
-from .models import Profile, NotificationPreferences, WaterIntake, Date
+from .models import Profile, NotificationPreferences
 from .mixins import UpdateSerializerMixin
 
 class ProfileSerializer(UpdateSerializerMixin, serializers.ModelSerializer):
@@ -24,15 +24,3 @@ class NotificationPreferencesSerializer(UpdateSerializerMixin, serializers.Model
     class Meta:
         model = NotificationPreferences
         fields = '__all__'
-
-class WaterIntakeSerializer(UpdateSerializerMixin, serializers.ModelSerializer):
-    class Meta:
-        model = WaterIntake
-        fields = '__all__'
-
-class DateSerializer(serializers.ModelSerializer):
-    date = serializers.DateField(input_formats=['%d-%m-%Y'])
-
-    class Meta:
-        model = Date
-        fields = ['id', 'date']

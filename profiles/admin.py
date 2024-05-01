@@ -1,5 +1,5 @@
 from django.contrib import admin
 
-from .models import Profile, NotificationPreferences, Date, WaterIntake
+from .models import Profile, NotificationPreferences
 
-admin.site.register([Profile, Date, NotificationPreferences, WaterIntake])
+admin.site.register([Profile, NotificationPreferences])

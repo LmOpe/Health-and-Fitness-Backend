@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "djoser",
     "auth_app",
     "profiles",
+    "food_diaries",
 ]
 
 MIDDLEWARE = [
