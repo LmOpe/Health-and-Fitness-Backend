@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from profiles.mixins import UpdateSerializerMixin
-from .models import  WaterIntake, Date
+from .models import  WaterIntake, Date, Exercise
 
 class WaterIntakeSerializer(UpdateSerializerMixin, serializers.ModelSerializer):
     class Meta:
@@ -13,4 +13,9 @@ class DateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Date
-        fields = ['id', 'date'] 
+        fields = ['id', 'date']
+
+class ExerciseSerializer(UpdateSerializerMixin, serializers.ModelSerializer):
+    class Meta:
+        model = Exercise
+        fields = '__all__'

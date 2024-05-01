@@ -2,6 +2,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status, serializers
 
+from food_diaries.models import Date
+
 class UserAssociatedMixin:
     permission_classes = [IsAuthenticated]
 
@@ -11,13 +13,29 @@ class UserAssociatedMixin:
     def get_serializer_class(self):
         raise NotImplementedError("You must implement get_serializer_class method.")
 
+    def getDate(self):
+        date = None
+        if self.request.method == "GET" or self.request.method == "DELETE":
+            date = self.request.query_params.get("date")
+        else:
+            date = self.request.data["date"]
+        dateObj, created = Date.objects.get_or_create(date=date)
+        return dateObj.id
+
     def get(self, request):
         instance = self.get_instance()
         if instance:
             serializer_class = self.get_serializer_class()
             serializer = serializer_class(instance)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response({"Error": "Not found"}, status.HTTP_404_NOT_FOUND)
+        return Response({"Error": "Object with user or date Not found"}, status.HTTP_404_NOT_FOUND)
+
+    def delete(self, request):
+        instance = self.get_instance()
+        if instance:
+            instance.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({"Error": "Object with user or date Not found"}, status.HTTP_404_NOT_FOUND)
 
     def post(self, request):
         user = request.user
