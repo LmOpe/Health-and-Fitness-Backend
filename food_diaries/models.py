@@ -49,9 +49,13 @@ class Meal(BaseModel):
             models.UniqueConstraint(fields=['user', 'date', 'name'], name='unique_user_date_name_meal')
         ]
 
-class EnergyRequired(BaseModel):
-    energy = models.DecimalField(decimal_places=2, max_digits=8)
+class CalorieLog(BaseModel):
+    calorie = models.DecimalField(decimal_places=2, max_digits=8)
+    carbs = models.DecimalField(max_digits=5, decimal_places=2)
+    protein = models.DecimalField(max_digits=5, decimal_places=2)
+    fats = models.DecimalField(max_digits=5, decimal_places=2)
+
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['user', 'date'], name='unique_user_date_energyrequired')
+            models.UniqueConstraint(fields=['user', 'date', 'calorie'], name='unique_user_date_calorie_calorielog')
         ]

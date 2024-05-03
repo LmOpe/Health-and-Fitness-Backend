@@ -42,7 +42,7 @@ class GenericListCreateUpdateDeleteAPIView(UserAssociatedMixin, APIView):
                 return self.model.objects.get(id=param)
             return self.model.objects.filter(user=self.request.user, date=self.get_date())
         except self.model.DoesNotExist:
-            return None
+            return None, self.model.__name__
             
     def get_serializer_class(self):
         return self.serializer_class
