@@ -22,7 +22,10 @@ class UserAssociatedMixin:
     def get_date(self):
         date = None
         if self.request.method == "GET" or self.request.method == "DELETE":
-            date = self.request.query_params.get("date")
+            try:
+                date = self.request.query_params["date"]
+            except:
+                return None
         else:
             date = self.request.data["date"]
         date_obj, created = Date.objects.get_or_create(date=date)

@@ -22,6 +22,7 @@ urlpatterns = [
     path('api/v1/auth/', include("auth_app.urls")),
     path('api/v1/profile/', include("profiles.urls")),
     path('api/v1/food-diaries/', include("food_diaries.urls")),
+    path('api/v1/meal-planner/', include("meal_planner.urls")),
     re_path(r"^auth/", include("djoser.urls")),
     re_path(r"^auth/", include("djoser.urls.jwt")),
     # DJDT

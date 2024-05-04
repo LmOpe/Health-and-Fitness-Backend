@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "auth_app",
     "profiles",
     "food_diaries",
+    "meal_planner",
 ]
 
 MIDDLEWARE = [

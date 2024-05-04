@@ -32,7 +32,7 @@ class GenericListCreateUpdateDeleteAPIView(UserAssociatedMixin, APIView):
             serializer_class = self.get_serializer_class()
             serializer = serializer_class(queryset, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response({"Error": "Object with user or date not found"}, status.HTTP_404_NOT_FOUND)
+        return Response({"Error": f"{self.model.__name__} with user or date not found"}, status.HTTP_404_NOT_FOUND)
 
     def get_instance(self, param=None):
         try:
@@ -40,7 +40,10 @@ class GenericListCreateUpdateDeleteAPIView(UserAssociatedMixin, APIView):
                 return self.model.objects.get(user=self.request.user, date=self.get_date(), name=self.request.data['name'])
             elif self.request.method == "DELETE":
                 return self.model.objects.get(id=param)
-            return self.model.objects.filter(user=self.request.user, date=self.get_date())
+            queryset =  self.model.objects.filter(user=self.request.user, date=self.get_date())
+            if not queryset:
+                return None
+            return queryset
         except self.model.DoesNotExist:
             return None, self.model.__name__
             
