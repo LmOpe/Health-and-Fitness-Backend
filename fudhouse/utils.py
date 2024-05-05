@@ -29,8 +29,7 @@ def base64_encode(value):
 
 
 def date_formatter(date):
-    #date = datetime.strptime(date_string, '%d-%m-%Y')
-    return date.strftime('%d, %a %Y')
+    return date.strftime('%a, %d %m %Y')
 
 
 def convert_lbs_to_kg(value, unit):
@@ -53,9 +52,9 @@ def calculate_calorie(sex, weight, height, age, activity_level, goal):
     calorie = None
 
     if sex == "male":
-        BMR = Decimal("66.47") + (Decimal("13.75") * weight) + (Decimal("5.003") * height) - (Decimal("6.755") * age)
+        BMR = (Decimal("10") * weight) + (Decimal("6.25") * height) - (Decimal("5") * age) + Decimal("5") 
     elif sex == "female":
-        BMR = Decimal("655.1") + (Decimal("9.563") * weight) + (Decimal("1.850") * height) - (Decimal("4.676") * age)
+        BMR = (Decimal("10") * weight) + (Decimal("6.25") * height) - (Decimal("5") * age) - Decimal("161")
 
     if activity_level == "very active":
         AMR = Decimal("1.9") * BMR
@@ -77,6 +76,7 @@ def calculate_calorie(sex, weight, height, age, activity_level, goal):
     protein = round((Decimal("0.225") * calorie) / 4, 2)
     fats = round((Decimal("0.275") * calorie) / 9, 2)
 
+    print(calorie, carbs, protein, fats)
     return [round(calorie, 2), carbs, protein, fats]
 
 
@@ -85,7 +85,6 @@ def calculate_requirements(user):
     today = datetime.today()
     dob = profile.dob
     age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day)) 
-
     calorie, carbs, protein, fats = calculate_calorie(
         profile.sex.lower(),
         convert_lbs_to_kg(profile.weight, profile.weight_unit),
@@ -94,5 +93,4 @@ def calculate_requirements(user):
         profile.activity_level.lower(),
         profile.nutritional_goal.lower()
     )
-
     return calorie, carbs, protein, fats
