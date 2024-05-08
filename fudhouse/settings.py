@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "debug_toolbar",
     "djoser",
+    "corsheaders",
     "auth_app",
     "profiles",
     "food_diaries",
@@ -65,6 +66,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
 ]
 
 ROOT_URLCONF = "fudhouse.urls"
@@ -172,8 +174,13 @@ SIMPLE_JWT = {
 }
 
 DJOSER = {
-    "ACTIVATION_URL": "activate/{uid}/{token}",
+    "ACTIVATION_URL": "http://localhost:5173/account/activate/{uid}/{token}",
     "SEND_ACTIVATION_EMAIL": True,
 }
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+]
