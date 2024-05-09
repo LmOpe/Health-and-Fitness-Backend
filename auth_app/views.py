@@ -4,6 +4,7 @@ from datetime import timedelta
 
 from django.core.mail import send_mail
 from django.conf import settings
+from django.http import HttpResponseRedirect
 from django.shortcuts import redirect
 from django.views.generic.base import View
 from django.utils.crypto import get_random_string
@@ -22,6 +23,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import User
 from fudhouse.utils import hash_to_smaller_int, base64_encode
+from fudhouse.settings import BASE_URL
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -131,11 +134,26 @@ def user_otp(request):
         else:
             return Response({'error': 'Incorrect OTP'}, status=status.HTTP_400_BAD_REQUEST)
 
+
+class ActivateUser(APIView):
+
+    def get(self, request, uid, token):
+        payload = {'uid': uid, 'token': token}
+        url = f"{BASE_URL}/auth/users/activation/"
+        response = requests.post(url, data = payload)
+
+        if response.status_code == 204:
+            frontend_url = 'http://localhost:5173/account/activate/success'
+            return HttpResponseRedirect(frontend_url) 
+        else:
+            return Response(response.json())
+
+
 class GoogleAuthRedirect(View):
     permission_classes = [AllowAny]
     
     def get(self, request):
-        redirect_url = f"https://accounts.google.com/o/oauth2/v2/auth?client_id={settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY}&response_type=code&scope=https://www.googleapis.com/auth/userinfo.profile%20https://www.googleapis.com/auth/userinfo.email&access_type=offline&redirect_uri=http://localhost:8000/api/v1/auth/google/signup"
+        redirect_url = f"https://accounts.google.com/o/oauth2/v2/auth?client_id={settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY}&response_type=code&scope=https://www.googleapis.com/auth/userinfo.profile%20https://www.googleapis.com/auth/userinfo.email&access_type=offline&redirect_uri={BASE_URL}/api/v1/auth/google/signup"
         return redirect(redirect_url)
 
 
@@ -153,7 +171,7 @@ class GoogleRedirectURIView(APIView):
                 'code': code,
                 'client_id': settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY,
                 'client_secret': settings.SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET,
-                'redirect_uri': 'http://localhost:8000/api/v1/auth/google/signup',  # Must match the callback URL configured in your Google API credentials
+                'redirect_uri': f'{BASE_URL}/api/v1/auth/google/signup',  # Must match the callback URL configured in your Google API credentials
                 'grant_type': 'authorization_code',
             }
             
@@ -203,7 +221,7 @@ class TwitterAuthRedirect(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        redirect_uri = 'http://localhost:8000/api/v1/auth/twitter/signup'  # Callback URL configured in Twitter Developer Dashboard
+        redirect_uri = f'{BASE_URL}/api/v1/auth/twitter/signup'  # Callback URL configured in Twitter Developer Dashboard
         auth_url = f"https://twitter.com/i/oauth2/authorize?response_type=code&client_id={settings.SOCIAL_AUTH_TWITTER_OAUTH2_KEY}&redirect_uri={redirect_uri}&scope=users.read%20tweet.read%20offline.access&state=state&code_challenge=challenge&code_challenge_method=plain"
         
         return redirect(auth_url)
@@ -220,7 +238,7 @@ class TwitterRedirectURIView(APIView):
             token_params = {
                 'code': code,
                 'grant_type': 'authorization_code',
-                'redirect_uri': 'http://localhost:8000/api/v1/auth/twitter/signup',
+                'redirect_uri': f'{BASE_URL}/api/v1/auth/twitter/signup',
                 'code_verifier': 'challenge'
             }
 

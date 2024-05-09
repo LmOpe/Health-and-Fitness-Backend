@@ -174,8 +174,9 @@ SIMPLE_JWT = {
 }
 
 DJOSER = {
-    "ACTIVATION_URL": "http://localhost:5173/account/activate/{uid}/{token}",
+    "ACTIVATION_URL": "api/v1/auth/users/account/activate/{uid}/{token}",
     "SEND_ACTIVATION_EMAIL": True,
+    "SEND_CONFIRMATION_EMAIL": True
 }
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
@@ -184,3 +185,6 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:5173',
     'http://127.0.0.1:5173',
 ]
+
+
+BASE_URL = env("BASE_URL")
