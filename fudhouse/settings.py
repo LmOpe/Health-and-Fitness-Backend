@@ -60,13 +60,13 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
 ]
 
 ROOT_URLCONF = "fudhouse.urls"
@@ -182,9 +182,10 @@ DJOSER = {
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
 ]
 
 
 BASE_URL = env("BASE_URL")
+FRONTEND_URL = env("FRONTEND_URL")

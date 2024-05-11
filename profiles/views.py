@@ -9,7 +9,7 @@ class ProfileRetrieveCreateUpdateAPIView(APIView, UserAssociatedMixin):
         try:
             return Profile.objects.get(user=self.request.user)
         except Profile.DoesNotExist:
-            return None
+            return None, Profile.__name__
 
     def get_serializer_class(self):
         return ProfileSerializer
@@ -19,6 +19,6 @@ class NotificationPreferencesRetrieveCreateUpdateView(APIView, UserAssociatedMix
         try:
             return NotificationPreferences.objects.get(user=self.request.user)
         except NotificationPreferences.DoesNotExist:
-            return None
+            return None, NotificationPreferences.__name__
     def get_serializer_class(self):
         return NotificationPreferencesSerializer

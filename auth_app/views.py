@@ -4,7 +4,7 @@ from datetime import timedelta
 
 from django.core.mail import send_mail
 from django.conf import settings
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import redirect
 from django.views.generic.base import View
 from django.utils.crypto import get_random_string
@@ -23,7 +23,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import User
 from fudhouse.utils import hash_to_smaller_int, base64_encode
-from fudhouse.settings import BASE_URL
+from fudhouse.settings import BASE_URL, FRONTEND_URL
 
 
 @api_view(['GET'])
@@ -141,12 +141,15 @@ class ActivateUser(APIView):
         payload = {'uid': uid, 'token': token}
         url = f"{BASE_URL}/auth/users/activation/"
         response = requests.post(url, data = payload)
+        message = None
 
         if response.status_code == 204:
-            frontend_url = 'http://localhost:5173/account/activate/success'
+            frontend_url = f'{FRONTEND_URL}/account/activate/success'
             return HttpResponseRedirect(frontend_url) 
-        else:
-            return Response(response.json())
+        elif response.status_code == 400:
+            return HttpResponseRedirect(f'{FRONTEND_URL}/account/activate')
+        elif response.status_code == 403:
+            return HttpResponseRedirect(frontend_url)
 
 
 class GoogleAuthRedirect(View):
