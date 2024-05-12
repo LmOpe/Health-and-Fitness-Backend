@@ -152,12 +152,12 @@ class ActivateUser(APIView):
             return HttpResponseRedirect(frontend_url)
 
 
-class GoogleAuthRedirect(View):
-    permission_classes = [AllowAny]
+# class GoogleAuthRedirect(View):
+#     permission_classes = [AllowAny]
     
-    def get(self, request):
-        redirect_url = f"https://accounts.google.com/o/oauth2/v2/auth?client_id={settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY}&response_type=code&scope=https://www.googleapis.com/auth/userinfo.profile%20https://www.googleapis.com/auth/userinfo.email&access_type=offline&redirect_uri={BASE_URL}/api/v1/auth/google/signup"
-        return redirect(redirect_url)
+#     def get(self, request):
+#         redirect_url = f"https://accounts.google.com/o/oauth2/v2/auth?client_id={settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY}&response_type=code&scope=https://www.googleapis.com/auth/userinfo.profile%20https://www.googleapis.com/auth/userinfo.email&access_type=offline&redirect_uri={BASE_URL}/api/v1/auth/google/signup"
+#         return HttpResponseRedirect(redirect_url)
 
 
 class GoogleRedirectURIView(APIView):
@@ -226,6 +226,7 @@ class TwitterAuthRedirect(APIView):
     def get(self, request):
         redirect_uri = f'{BASE_URL}/api/v1/auth/twitter/signup'  # Callback URL configured in Twitter Developer Dashboard
         auth_url = f"https://twitter.com/i/oauth2/authorize?response_type=code&client_id={settings.SOCIAL_AUTH_TWITTER_OAUTH2_KEY}&redirect_uri={redirect_uri}&scope=users.read%20tweet.read%20offline.access&state=state&code_challenge=challenge&code_challenge_method=plain"
+        #auth_url = f"https://twitter.com/i/oauth2/authorize?response_type=code&client_id=RDFOTkJ2T3dZUFZHZTVtZUgycnc6MTpjaQ&redirect_uri=http://127.0.0.1:8000/api/v1/auth/twitter/signup&scope=users.read%20tweet.read%20offline.access&state=state&code_challenge=challenge&code_challenge_method=plain"
         
         return redirect(auth_url)
 
