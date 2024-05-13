@@ -21,7 +21,7 @@ from djoser.serializers import UsernameSerializer, PasswordSerializer
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import User
+from .models import User, OTP
 from fudhouse.utils import hash_to_smaller_int, base64_encode
 from fudhouse.settings import BASE_URL, FRONTEND_URL
 
@@ -56,7 +56,7 @@ class CustomUserViewSet(DjoserUserViewSet):
         user.set_password(serializer.data["new_password"])
         user.save()
 
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({"message": "Password changed successfully"}, status=status.HTTP_200_OK)
 
  # Override the Djoser User set password method to allow changing user's username without passing current_pasword payload
     @action(["post"], detail=False, url_path=f"set_{User.USERNAME_FIELD}")
@@ -69,7 +69,7 @@ class CustomUserViewSet(DjoserUserViewSet):
         setattr(user, User.USERNAME_FIELD, new_username)
         user.save()
     
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_200_OK)
 
 @api_view(['GET', 'POST'])
 @permission_classes([AllowAny])
@@ -86,16 +86,25 @@ def user_otp(request):
         
         except User.DoesNotExist:
            return Response({"error": "User with mail address does not exist"}, status=status.HTTP_404_NOT_FOUND)
-      
-        if 'otp' in request.session:
-            del request.session['otp']
 
         otp = get_random_string(length=4, allowed_chars='0123456789')
+
+        try:
+            storedOTP = OTP.objects.get(user=user)
+            storedOTP.delete()
+        except OTP.DoesNotExist:
+            pass
+
+        newOTP = OTP(user=user, otp=otp, expiry_time=int(time.time()) + 300)
+        newOTP.save()
+
+        # if 'otp' in request.session:
+        #     del request.session['otp']
   
-        request.session['otp'] = {
-            'otp': otp,
-            'expiry_time': int(time.time()) + 60  # OTP expires after 60 seconds
-        }
+        # request.session['otp'] = {
+        #     'otp': otp,
+        #     'expiry_time': int(time.time()) + 3600  # OTP expires after 1hr
+        # }
 
         send_mail(
             'Your OTP',
@@ -113,23 +122,40 @@ def user_otp(request):
         if 'user_id' not in request.data:
             return Response({"error": "User ID is required"}, status=status.HTTP_400_BAD_REQUEST)
         
-        if 'otp' not in request.session:
-            return Response({'error': 'OTP session expired'}, status=status.HTTP_400_BAD_REQUEST)
+        user_id = request.data['user_id']
+        storedOTP = None
+        user=None
 
-        otp_data = request.session['otp']
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+           return Response({"error": "User with given ID does not exist"}, status=status.HTTP_404_NOT_FOUND)
+        
+        try:
+            storedOTP = OTP.objects.get(user=user)
+        except OTP.DoesNotExist:
+            return Response({'error': 'No OTP can be found for user'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # if 'otp' not in request.session:
+        #     return Response({'error': 'OTP session expired'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # otp_data = request.session['otp']
+
+        # current_time = int(time.time())
+        # if current_time > otp_data['expiry_time']:
+        #     # OTP has expired
+        #     del request.session['otp']
+        #     return Response({"error": "OTP has expired"}, status=status.HTTP_400_BAD_REQUEST)
         current_time = int(time.time())
-        if current_time > otp_data['expiry_time']:
+        if current_time > storedOTP.expiry_time:
             # OTP has expired
-            del request.session['otp']
+            storedOTP.delete()
             return Response({"error": "OTP has expired"}, status=status.HTTP_400_BAD_REQUEST)
 
         received_otp = request.data['otp']
-        user_id = request.data['user_id']
-        stored_otp = otp_data['otp']
         
-        if received_otp == stored_otp:
-            del request.session['otp']
+        if received_otp == storedOTP.otp:
+            storedOTP.delete()
             return Response({'message': 'OTP verified', 'user_id': user_id}, status=status.HTTP_200_OK)
         else:
             return Response({'error': 'Incorrect OTP'}, status=status.HTTP_400_BAD_REQUEST)
