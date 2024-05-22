@@ -39,6 +39,7 @@ class Exercise(BaseModel):
 class Meal(BaseModel):
     name = models.CharField()
     servings = models.IntegerField()
+    image_url = models.URLField(blank=True, null=True)
     energy = models.DecimalField(max_digits=5, decimal_places=2)
     carbs = models.DecimalField(max_digits=5, decimal_places=2)
     protein = models.DecimalField(max_digits=5, decimal_places=2)

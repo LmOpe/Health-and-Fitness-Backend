@@ -95,7 +95,7 @@ def user_otp(request):
         except OTP.DoesNotExist:
             pass
 
-        newOTP = OTP(user=user, otp=otp, expiry_time=int(time.time()) + 300)
+        newOTP = OTP(user=user, otp=otp, expiry_time=int(time.time()) + 300) # OTP expires in 5 minutes
         newOTP.save()
 
         # if 'otp' in request.session:
