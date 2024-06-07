@@ -25,16 +25,12 @@ class WaterIntake(BaseModel):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['user', 'date'], name='unique_user_date_waterintake')
+            models.UniqueConstraint(fields=['user', 'date'], name='unique_user_date_water_intake')
         ]
 class Exercise(BaseModel):
     name = models.CharField(max_length=20)
     time_spent = models.IntegerField()
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(fields=['user', 'date', 'name'], name='unique_user_date_name_exercise')
-        ]
+    energy_per_minute = models.DecimalField(max_digits=5, decimal_places=2)
 
 class Meal(BaseModel):
     name = models.CharField()
