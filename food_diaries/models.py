@@ -10,7 +10,8 @@ class Date(models.Model):
         return f'{date_formatter(self.date)}'
 
 class BaseModel(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="%(class)s", db_index=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, \
+                             related_name="%(class)s", db_index=True)
     date = models.ForeignKey(Date, on_delete=models.CASCADE, db_index=True)
 
     class Meta:
@@ -43,7 +44,8 @@ class Meal(BaseModel):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['user', 'date', 'name'], name='unique_user_date_name_meal')
+            models.UniqueConstraint(fields=['user', 'date', 'name'],\
+                                     name='unique_user_date_name_meal')
         ]
 
 class CalorieLog(BaseModel):
@@ -54,5 +56,6 @@ class CalorieLog(BaseModel):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['user', 'date', 'calorie'], name='unique_user_date_calorie_calorielog')
+            models.UniqueConstraint(fields=['user', 'date', 'calorie'], \
+                                    name='unique_user_date_calorie_calorielog')
         ]
