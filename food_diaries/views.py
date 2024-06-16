@@ -23,7 +23,7 @@ class WaterIntakeRetrieveCreateUpdateAPIView(APIView, UserAssociatedMixin):
 
     def get_instance(self):
         try:
-            return WaterIntake.objects.get(user=self.request.user, date=self.getDate())
+            return WaterIntake.objects.get(user=self.request.user, date=self.get_date())
         except WaterIntake.DoesNotExist:
            return None, WaterIntake.__name__
 

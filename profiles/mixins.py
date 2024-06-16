@@ -90,7 +90,11 @@ class UserAssociatedMixin:
                 if self.__class__.__name__ == "ProfileRetrieveCreateUpdateAPIView":
                     try:
                         date = datetime.today().date()
-                        calorie_log = CalorieLog.objects.get(user=instance.user, date=Date.objects.get(date=date).id)
+                        try:
+                            cur_date = Date.objects.get(date=date)
+                        except Date.objects.DoesNotExist:
+                            pass
+                        calorie_log = CalorieLog.objects.get(user=instance.user, date=cur_date.id)
                         calorie, carbs, protein, fats = calculate_requirements(instance.user)
                         calorie_log.calorie = calorie
                         calorie_log.carbs = carbs

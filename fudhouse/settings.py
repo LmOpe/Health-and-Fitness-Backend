@@ -164,13 +164,22 @@ SOCIAL_AUTH_TWITTER_OAUTH2_SECRET = env("TWITTER_SECRET")
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        'auth_app.authentication.CustomJWTAuthentication',
+        #"rest_framework_simplejwt.authentication.JWTAuthentication",
     )
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=10),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'AUTH_COOKIE': 'access_token',  # Cookie name. Also remember to change the front-end.
+    'AUTH_COOKIE_REFRESH': 'refresh_token',  # Cookie name. Also remember to change the front-end.
+    'AUTH_COOKIE_SECURE': not DEBUG,
+    'AUTH_COOKIE_HTTP_ONLY': True,
+    'AUTH_COOKIE_PATH': '/',
+    'AUTH_COOKIE_SAMESITE': 'Lax',
 }
 
 DJOSER = {
@@ -186,6 +195,20 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:5173",
 ]
 
+# Allow credentials (cookies) to be included in CORS requests
+CORS_ALLOW_CREDENTIALS = True
 
 BASE_URL = env("BASE_URL")
 FRONTEND_URL = env("FRONTEND_URL")
+
+# Security settings
+SECURE_SSL_REDIRECT = not DEBUG
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
+SECURE_HSTS_PRELOAD = not DEBUG
+SECURE_HSTS_SECONDS = 3600 if not DEBUG else 0
+
+# Cookies
+CSRF_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_HTTPONLY = True
+SESSION_COOKIE_HTTPONLY = True

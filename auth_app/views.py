@@ -1,6 +1,6 @@
 import time
 import requests
-from datetime import timedelta
+from datetime import timedelta, datetime, timezone
 
 from django.core.mail import send_mail
 from django.conf import settings
@@ -19,6 +19,7 @@ from rest_framework.decorators import api_view, action, permission_classes
 from djoser.views import UserViewSet as DjoserUserViewSet
 from djoser.serializers import UsernameSerializer, PasswordSerializer
 
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import User, OTP
@@ -323,3 +324,65 @@ class TwitterRedirectURIView(APIView):
                         return Response(data, status.HTTP_201_CREATED)
         
         return Response({}, status.HTTP_400_BAD_REQUEST)
+
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        response.set_cookie(
+            settings.SIMPLE_JWT['AUTH_COOKIE'],
+            response.data['access'],
+            max_age=settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds(),
+            secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+            httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+            samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+        )
+        response.set_cookie(
+            settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'],
+            response.data['refresh'],
+            max_age=settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'].total_seconds(),
+            secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+            httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+            samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+        )
+        del response.data['access']
+        del response.data['refresh']
+        return response
+
+class CustomTokenRefreshView(TokenRefreshView):
+    def post(self, request, *args, **kwargs):
+        # Get refresh token from cookies
+        refresh_token = request.COOKIES.get('refresh_token')
+
+        if not refresh_token:
+            return Response({"detail": "Refresh token missing in cookies."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        serializer = self.get_serializer(data={'refresh': refresh_token})
+
+        try:
+            serializer.is_valid(raise_exception=True)
+        except TokenError as e:
+            raise InvalidToken(e.args[0])
+
+        response = Response(serializer.validated_data, status=status.HTTP_200_OK)
+        
+        # Set the new access token in an HTTPOnly cookie
+        response.set_cookie(
+            settings.SIMPLE_JWT['AUTH_COOKIE'],
+            response.data['access'],
+            max_age=settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds(),
+            secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+            httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+            samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+        )
+
+        del response.data['access']
+        
+        return response
+
+class CustomLogoutView(APIView):
+    def post(self, request, *args, **kwargs):
+        response = Response(status=status.HTTP_204_NO_CONTENT)
+        response.delete_cookie(settings.SIMPLE_JWT['AUTH_COOKIE'])
+        response.delete_cookie(settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'])
+        return response
