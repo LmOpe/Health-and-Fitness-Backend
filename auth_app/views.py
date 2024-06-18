@@ -352,7 +352,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 class CustomTokenRefreshView(TokenRefreshView):
     def post(self, request, *args, **kwargs):
         # Get refresh token from cookies
-        refresh_token = request.COOKIES.get('refresh_token')
+        refresh_token = request.COOKIES.get('refresh')
 
         if not refresh_token:
             return Response({"detail": "Refresh token missing in cookies."}, status=status.HTTP_401_UNAUTHORIZED)

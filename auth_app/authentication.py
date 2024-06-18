@@ -8,7 +8,9 @@ class CustomJWTAuthentication(JWTAuthentication):
         token = request.COOKIES.get(settings.SIMPLE_JWT['AUTH_COOKIE'])
 
         if token is None:
-            return None
+            if "/auth/users/" in request.path:
+                return None
+            raise AuthenticationFailed( "Access token missing in cookies.")
 
         # Validate the token
         validated_token = self.get_validated_token(token)
