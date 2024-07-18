@@ -69,14 +69,13 @@ def calculate_calorie(sex, weight, height, age, activity_level, goal):
         calorie = AMR - 500
     elif goal == "gain weight":
         calorie = AMR + 500
-    elif goal == "stay fit":
+    elif goal == "maintain weight":
         calorie = AMR
 
     carbs = round((Decimal("0.55") * calorie) / 4, 2)
     protein = round((Decimal("0.225") * calorie) / 4, 2)
     fats = round((Decimal("0.275") * calorie) / 9, 2)
 
-    print(calorie, carbs, protein, fats)
     return [round(calorie, 2), carbs, protein, fats]
 
 

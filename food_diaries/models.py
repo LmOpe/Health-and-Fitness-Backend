@@ -22,7 +22,7 @@ class BaseModel(models.Model):
 
 class WaterIntake(BaseModel):
     number_of_glass = models.IntegerField()
-    water_goal = models.DecimalField(max_digits=5, decimal_places=2, default=0.25)
+    water_goal = models.DecimalField(max_digits=10, decimal_places=2, default=0.25)
 
     class Meta:
         constraints = [
@@ -31,16 +31,16 @@ class WaterIntake(BaseModel):
 class Exercise(BaseModel):
     name = models.CharField(max_length=20)
     time_spent = models.IntegerField()
-    energy_per_minute = models.DecimalField(max_digits=5, decimal_places=2)
+    energy_per_minute = models.DecimalField(max_digits=10, decimal_places=2)
 
 class Meal(BaseModel):
     name = models.CharField()
     servings = models.IntegerField()
-    image_url = models.URLField(blank=True, null=True)
-    energy = models.DecimalField(max_digits=5, decimal_places=2)
-    carbs = models.DecimalField(max_digits=5, decimal_places=2)
-    protein = models.DecimalField(max_digits=5, decimal_places=2)
-    fats = models.DecimalField(max_digits=5, decimal_places=2)
+    image_url = models.URLField(blank=True, null=True, max_length=3000)
+    energy = models.DecimalField(max_digits=10, decimal_places=2)
+    carbs = models.DecimalField(max_digits=10, decimal_places=2)
+    protein = models.DecimalField(max_digits=10, decimal_places=2)
+    fats = models.DecimalField(max_digits=10, decimal_places=2)
 
     class Meta:
         constraints = [
@@ -49,10 +49,10 @@ class Meal(BaseModel):
         ]
 
 class CalorieLog(BaseModel):
-    calorie = models.DecimalField(decimal_places=2, max_digits=8)
-    carbs = models.DecimalField(max_digits=5, decimal_places=2)
-    protein = models.DecimalField(max_digits=5, decimal_places=2)
-    fats = models.DecimalField(max_digits=5, decimal_places=2)
+    calorie = models.DecimalField(decimal_places=2, max_digits=10)
+    carbs = models.DecimalField(max_digits=10, decimal_places=2)
+    protein = models.DecimalField(max_digits=10, decimal_places=2)
+    fats = models.DecimalField(max_digits=10, decimal_places=2)
 
     class Meta:
         constraints = [
