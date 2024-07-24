@@ -60,7 +60,9 @@ class CalorieLogRetrieveCreateUpdateAPIView(APIView, UserAssociatedMixin):
         if serializer.is_valid():
             try:
                 serializer.save()
-            except:
+            except LookupError as e:
+                return Response({f"Error: {e}"}, status=status.HTTP_404_NOT_FOUND)
+            except Exception:
                 return Response({"Error: User has already logged calorie for the day"}, status=status.HTTP_400_BAD_REQUEST)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

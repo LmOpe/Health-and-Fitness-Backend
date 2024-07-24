@@ -78,16 +78,19 @@ def calculate_calorie(sex, weight, height, age, activity_level, goal):
 
     return [round(calorie, 2), carbs, protein, fats]
 
-
 def calculate_requirements(user):
-    profile = Profile.objects.get(user=user)
+    try:
+        profile = Profile.objects.get(user=user)
+    except Exception as e:
+        raise LookupError(e) from e
+
     today = datetime.today()
     dob = profile.dob
     age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day)) 
     calorie, carbs, protein, fats = calculate_calorie(
         profile.sex.lower(),
-        convert_lbs_to_kg(profile.weight, profile.weight_unit),
-        convert_ft_to_cm(profile.height, profile.height_unit),
+        convert_lbs_to_kg(profile.weight, profile.weight_unit.lower()),
+        convert_ft_to_cm(profile.height, profile.height_unit.lower()),
         age,
         profile.activity_level.lower(),
         profile.nutritional_goal.lower()

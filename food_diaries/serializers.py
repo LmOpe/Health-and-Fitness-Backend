@@ -46,7 +46,10 @@ class CalorieLogSerializer(serializers.ModelSerializer):
         user = validated_data.pop('user')
         date = validated_data.pop('date')
 
-        calorie, carbs, protein, fats = calculate_requirements(user)
+        try:
+            calorie, carbs, protein, fats = calculate_requirements(user)
+        except Exception as e:
+            raise LookupError(e) from e
 
         instance = CalorieLog.objects.create(
             user=user,
