@@ -23,6 +23,9 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import User, OTP
+from food_diaries.models import CalorieLog, Date
+from food_diaries.serializers import CalorieLogSerializer
+from profiles.models import NotificationPreferences
 from fudhouse.utils import hash_to_smaller_int, base64_encode
 from fudhouse.settings import BASE_URL, FRONTEND_URL
 
@@ -36,15 +39,17 @@ class CustomUserViewSet(DjoserUserViewSet):
     def get_permissions(self):
         if self.action == 'set_password':
             return []
-        else:
-            return super().get_permissions()
+        return super().get_permissions()
 
     # Override the Djoser User delete method to allow deleting without passing current_pasword payload
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
 
         self.perform_destroy(instance)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        response = Response(status=status.HTTP_204_NO_CONTENT)
+        response.delete_cookie(settings.SIMPLE_JWT['AUTH_COOKIE'])
+        response.delete_cookie(settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'])
+        return response
 
  # Override the Djoser User set password method to allow changing user's password without passing current_pasword payload
     @action(["post"], detail=False)
@@ -193,6 +198,7 @@ class GoogleRedirectURIView(APIView):
     def get(self, request):
         # Extract the authorization code from the request URL
         code = request.GET.get('code')
+        return_response = HttpResponseRedirect(f"{settings.FRONTEND_URL}/diary")
         
         if code:
             # Prepare the request parameters to exchange the authorization code for an access token
@@ -206,7 +212,10 @@ class GoogleRedirectURIView(APIView):
             }
             
             # Make a POST request to exchange the authorization code for an access token
-            response = requests.post(token_endpoint, data=token_params)
+            try:
+                response = requests.post(token_endpoint, data=token_params)
+            except:
+                return HttpResponseRedirect(f"{settings.FRONTEND_URL}/log-in")
             
             if response.status_code == 200:
                 access_token = response.json().get('access_token')
@@ -231,19 +240,54 @@ class GoogleRedirectURIView(APIView):
                             refresh = RefreshToken.for_user(user)
                             data['access'] = str(refresh.access_token)
                             data['refresh'] = str(refresh)
-                            data['user_id'] = str(user.id)
-                            return Response(data, status.HTTP_200_OK)
+                            return_response.set_cookie(
+                                settings.SIMPLE_JWT['AUTH_COOKIE'],
+                                data['access'],
+                                max_age=settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds(),
+                                secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                                httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+                                samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+                            )
+                            return_response.set_cookie(
+                                settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'],
+                                data['refresh'],
+                                max_age=settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'].total_seconds(),
+                                secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                                httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+                                samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+                            )
+                            
+                            return return_response
 
                         except User.DoesNotExist:
+                            print("HELLO")
                             user = User.objects.create_user(id=uid,fullname=profile_data['name'], username=profile_data['name'],
                                                 email=f"{profile_data['email']}-{uid}", password='NIL', is_active=True)
-                    
-                        refresh = RefreshToken.for_user(user)
-                        data['access'] = str(refresh.access_token)
-                        data['refresh'] = str(refresh)
-                        data['user_id'] = str(user.id)
-                        return Response(data, status.HTTP_201_CREATED)
-        
+                            
+                            notifpref = NotificationPreferences.objects.get_or_create(user=user)
+
+                            refresh = RefreshToken.for_user(user)
+                            data['access'] = str(refresh.access_token)
+                            data['refresh'] = str(refresh)
+                            return_response.set_cookie(
+                                    settings.SIMPLE_JWT['AUTH_COOKIE'],
+                                    data['access'],
+                                    max_age=settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds(),
+                                    secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                                    httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+                                    samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+                                )
+                            return_response.set_cookie(
+                                settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'],
+                                data['refresh'],
+                                max_age=settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'].total_seconds(),
+                                secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                                httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+                                samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+                            )
+                        
+                            return return_response
+                        
         return Response({}, status.HTTP_400_BAD_REQUEST)
 
 
@@ -263,6 +307,8 @@ class TwitterRedirectURIView(APIView):
 
     def get(self, request):
         code = request.GET.get('code')
+        return_response = super().get(request, *args, **kwargs)
+
 
         if code:
             token_url = 'https://api.twitter.com/2/oauth2/token'
@@ -289,7 +335,7 @@ class TwitterRedirectURIView(APIView):
             }
 
             response = requests.post(token_url, headers=headers, data=token_params)
-
+          
             if response.status_code == 200:
                 access_token = response.json().get('access_token')
                 if access_token:
@@ -310,8 +356,25 @@ class TwitterRedirectURIView(APIView):
                             refresh = RefreshToken.for_user(user)
                             data['access'] = str(refresh.access_token)
                             data['refresh'] = str(refresh)
-                            data['user_id'] = str(user.id)
-                            return Response(data, status.HTTP_200_OK)
+                            return_response.set_cookie(
+                                settings.SIMPLE_JWT['AUTH_COOKIE'],
+                                response.data['access'],
+                                max_age=settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds(),
+                                secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                                httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+                                samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+                            )
+                            return_response.set_cookie(
+                                settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'],
+                                response.data['refresh'],
+                                max_age=settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'].total_seconds(),
+                                secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                                httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+                                samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+                            )
+                            del response.data['access']
+                            del response.data['refresh']
+                            return response
 
                         except User.DoesNotExist:
                             user = User.objects.create_user(id=uid, fullname=user_info['name'], username=user_info['username'],
@@ -320,8 +383,25 @@ class TwitterRedirectURIView(APIView):
                         refresh = RefreshToken.for_user(user)
                         data['access'] = str(refresh.access_token)
                         data['refresh'] = str(refresh)
-                        data['user_id'] = str(user.id)
-                        return Response(data, status.HTTP_201_CREATED)
+                        return_response.set_cookie(
+                                settings.SIMPLE_JWT['AUTH_COOKIE'],
+                                response.data['access'],
+                                max_age=settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds(),
+                                secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                                httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+                                samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+                            )
+                        return_response.set_cookie(
+                            settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'],
+                            response.data['refresh'],
+                            max_age=settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'].total_seconds(),
+                            secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                            httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+                            samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+                        )
+                        del response.data['access']
+                        del response.data['refresh']
+                        return response
         
         return Response({}, status.HTTP_400_BAD_REQUEST)
 

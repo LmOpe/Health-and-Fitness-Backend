@@ -8,7 +8,7 @@ class CustomJWTAuthentication(JWTAuthentication):
         token = request.COOKIES.get(settings.SIMPLE_JWT['AUTH_COOKIE'])
 
         if token is None:
-            if "/auth/users/" in request.path:
+            if "/auth/users/" in request.path or "/google/signup/" in request.path:
                 return None
             raise AuthenticationFailed( "Access token missing in cookies.")
 
