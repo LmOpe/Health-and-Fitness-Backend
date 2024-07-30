@@ -1,8 +1,7 @@
 from django.urls import path
 
 from .views import user_otp, CustomUserViewSet, \
-    GoogleRedirectURIView, TwitterAuthRedirect, \
-    TwitterRedirectURIView,test_auth, ActivateUser,\
+    GoogleRedirectURIView, TwitterRedirectURIView,test_auth, ActivateUser,\
     CustomTokenRefreshView, CustomLogoutView, CustomTokenObtainPairView
 
 urlpatterns = [
@@ -15,7 +14,7 @@ urlpatterns = [
     path('users/account/activate/<str:uid>/<str:token>', ActivateUser.as_view(), name="activate-user"),
     #path("google-signup/", GoogleAuthRedirect.as_view(), name="google-redirect-user"),
     path("google/signup/", GoogleRedirectURIView.as_view(), name="google-handle-redirect"),
-    path("twitter-signup/", TwitterAuthRedirect.as_view(), name="twitter-redirect-user"),
+   # path("twitter-signup/", TwitterAuthRedirect.as_view(), name="twitter-redirect-user"),
     path("twitter/signup/", TwitterRedirectURIView.as_view(), name="twitter-handle-redirect"),  
     path("test-auth/", test_auth),
     path('jwt/create/', CustomTokenObtainPairView.as_view(), name='jwt-create'),

@@ -260,7 +260,6 @@ class GoogleRedirectURIView(APIView):
                             return return_response
 
                         except User.DoesNotExist:
-                            print("HELLO")
                             user = User.objects.create_user(id=uid,fullname=profile_data['name'], username=profile_data['name'],
                                                 email=f"{profile_data['email']}-{uid}", password='NIL', is_active=True)
                             
@@ -291,15 +290,15 @@ class GoogleRedirectURIView(APIView):
         return Response({}, status.HTTP_400_BAD_REQUEST)
 
 
-class TwitterAuthRedirect(APIView):
-    permission_classes = [AllowAny]
+# class TwitterAuthRedirect(APIView):
+#     permission_classes = [AllowAny]
 
-    def get(self, request):
-        redirect_uri = f'{BASE_URL}/api/v1/auth/twitter/signup'  # Callback URL configured in Twitter Developer Dashboard
-        auth_url = f"https://twitter.com/i/oauth2/authorize?response_type=code&client_id={settings.SOCIAL_AUTH_TWITTER_OAUTH2_KEY}&redirect_uri={redirect_uri}&scope=users.read%20tweet.read%20offline.access&state=state&code_challenge=challenge&code_challenge_method=plain"
-        #auth_url = f"https://twitter.com/i/oauth2/authorize?response_type=code&client_id=RDFOTkJ2T3dZUFZHZTVtZUgycnc6MTpjaQ&redirect_uri=http://127.0.0.1:8000/api/v1/auth/twitter/signup&scope=users.read%20tweet.read%20offline.access&state=state&code_challenge=challenge&code_challenge_method=plain"
+#     def get(self, request):
+#         redirect_uri = f'{BASE_URL}/api/v1/auth/twitter/signup'  # Callback URL configured in Twitter Developer Dashboard
+#         auth_url = f"https://twitter.com/i/oauth2/authorize?response_type=code&client_id={settings.SOCIAL_AUTH_TWITTER_OAUTH2_KEY}&redirect_uri={redirect_uri}&scope=users.read%20tweet.read%20offline.access&state=state&code_challenge=challenge&code_challenge_method=plain"
+#         #auth_url = f"https://twitter.com/i/oauth2/authorize?response_type=code&client_id=RDFOTkJ2T3dZUFZHZTVtZUgycnc6MTpjaQ&redirect_uri=http://127.0.0.1:8000/api/v1/auth/twitter/signup&scope=users.read%20tweet.read%20offline.access&state=state&code_challenge=challenge&code_challenge_method=plain"
         
-        return redirect(auth_url)
+#         return redirect(auth_url)
 
 
 class TwitterRedirectURIView(APIView):
@@ -307,7 +306,7 @@ class TwitterRedirectURIView(APIView):
 
     def get(self, request):
         code = request.GET.get('code')
-        return_response = super().get(request, *args, **kwargs)
+        return_response = HttpResponseRedirect(f"{settings.FRONTEND_URL}/diary")
 
 
         if code:
@@ -358,12 +357,40 @@ class TwitterRedirectURIView(APIView):
                             data['refresh'] = str(refresh)
                             return_response.set_cookie(
                                 settings.SIMPLE_JWT['AUTH_COOKIE'],
-                                response.data['access'],
+                                data['access'],
                                 max_age=settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds(),
                                 secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
                                 httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
                                 samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
                             )
+                            return_response.set_cookie(
+                                settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'],
+                                data['refresh'],
+                                max_age=settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'].total_seconds(),
+                                secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                                httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+                                samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+                            )
+                            
+                            return return_response
+
+                        except User.DoesNotExist:
+                            user = User.objects.create_user(id=uid, fullname=user_info['name'], username=user_info['username'],
+                                                            email=f"-{uid}", password='Nil', is_active=True)
+                            
+                            notifpref = NotificationPreferences.objects.get_or_create(user=user)
+
+                            refresh = RefreshToken.for_user(user)
+                            data['access'] = str(refresh.access_token)
+                            data['refresh'] = str(refresh)
+                            return_response.set_cookie(
+                                    settings.SIMPLE_JWT['AUTH_COOKIE'],
+                                    response.data['access'],
+                                    max_age=settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds(),
+                                    secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                                    httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+                                    samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+                                )
                             return_response.set_cookie(
                                 settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'],
                                 response.data['refresh'],
@@ -372,36 +399,8 @@ class TwitterRedirectURIView(APIView):
                                 httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
                                 samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
                             )
-                            del response.data['access']
-                            del response.data['refresh']
-                            return response
-
-                        except User.DoesNotExist:
-                            user = User.objects.create_user(id=uid, fullname=user_info['name'], username=user_info['username'],
-                                                            email=f"-{uid}", password='Nil', is_active=True)
-                    
-                        refresh = RefreshToken.for_user(user)
-                        data['access'] = str(refresh.access_token)
-                        data['refresh'] = str(refresh)
-                        return_response.set_cookie(
-                                settings.SIMPLE_JWT['AUTH_COOKIE'],
-                                response.data['access'],
-                                max_age=settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds(),
-                                secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
-                                httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
-                                samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
-                            )
-                        return_response.set_cookie(
-                            settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'],
-                            response.data['refresh'],
-                            max_age=settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'].total_seconds(),
-                            secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
-                            httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
-                            samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
-                        )
-                        del response.data['access']
-                        del response.data['refresh']
-                        return response
+                        
+                            return return_response
         
         return Response({}, status.HTTP_400_BAD_REQUEST)
 
