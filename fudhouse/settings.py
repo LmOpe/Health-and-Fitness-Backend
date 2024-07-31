@@ -100,10 +100,10 @@ WSGI_APPLICATION = "fudhouse.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql_psycopg2",
-        "NAME": "verceldb",
-        "USER": "default",
-        "PASSWORD": "MUuD04XrNjGZ",
-        "HOST": "ep-bitter-mountain-a4dav2rg-pooler.us-east-1.postgres.vercel-storage.com",
+        "NAME": env("DB_NAME"),
+        "USER": env("DB_USERNAME"),
+        "PASSWORD": env("DB_PASSWORD"),
+        "HOST": env("DB_HOST"),
         "PORT": "5432",
     }
 }
