@@ -12,6 +12,7 @@ djangorestframework-simplejwt = "==5.2.2"
 djangorestframework = "==3.14"
 python-environ = "==0.4.54"
 psycopg2-binary = "==2.9.9"
+setuptools = "*"
 
 [dev-packages]
 
