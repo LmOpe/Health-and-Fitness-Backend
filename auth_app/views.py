@@ -173,16 +173,15 @@ class ActivateUser(APIView):
         payload = {'uid': uid, 'token': token}
         url = f"{BASE_URL}/auth/users/activation/"
         response = requests.post(url, data = payload)
-        message = None
 
         if response.status_code == 204:
             frontend_url = f'{FRONTEND_URL}/account/activate/success'
             return HttpResponseRedirect(frontend_url) 
-        elif response.status_code == 400:
+        if response.status_code == 400:
             return HttpResponseRedirect(f'{FRONTEND_URL}/account/activate')
-        elif response.status_code == 403:
+        if response.status_code == 403:
             return HttpResponseRedirect(frontend_url)
-
+        return HttpResponseRedirect(frontend_url)
 
 # class GoogleAuthRedirect(View):
 #     permission_classes = [AllowAny]
