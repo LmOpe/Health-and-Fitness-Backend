@@ -5,7 +5,7 @@ import sys
 
 def main():
     """Run administrative tasks."""
-    settings_module = 'fudhouse.settings_prod'  if os.getenv('DJANGO_ENV') == 'production' else "fudhouse.settings_local"
+    settings_module = 'fudhouse.settings_prod'  if os.getenv('DEBUG')  else "fudhouse.settings_local"
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", settings_module)
     try:
         from django.core.management import execute_from_command_line
