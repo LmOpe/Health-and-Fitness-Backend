@@ -59,8 +59,3 @@ class OTP(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     otp = models.CharField(max_length=4)
     expiry_time = models.IntegerField()
-
-class OT(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    otp = models.CharField(max_length=4)
-    expiry_time = models.IntegerField()
