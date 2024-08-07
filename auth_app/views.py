@@ -49,7 +49,7 @@ class CustomUserViewSet(DjoserUserViewSet):
         response = Response(status=status.HTTP_204_NO_CONTENT)
         response.delete_cookie(settings.SIMPLE_JWT['AUTH_COOKIE'])
         response.delete_cookie(settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'])
-        return response
+        return response    
 
  # Override the Djoser User set password method to allow changing user's password without passing current_pasword payload
     @action(["post"], detail=False)

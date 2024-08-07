@@ -5,7 +5,7 @@ from auth_app.models import User
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, \
         primary_key=True, related_name='profile', db_index=True)
-    avatar = models.URLField(blank=True, null=True)
+    avatar = models.URLField(blank=True, null=True, max_length=3000)
     nutritional_goal = models.CharField(max_length=50)
     sex = models.CharField(max_length=6)
     dob = models.DateField()
