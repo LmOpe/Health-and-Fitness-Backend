@@ -1,14 +1,10 @@
 import time
 import requests
-from datetime import timedelta, datetime, timezone
 
 from django.core.mail import send_mail
 from django.conf import settings
-from django.http import HttpResponseRedirect, HttpResponse
-from django.shortcuts import redirect
-from django.views.generic.base import View
+from django.http import HttpResponseRedirect
 from django.utils.crypto import get_random_string
-from django.shortcuts import get_object_or_404,render
 
 from rest_framework import status
 from rest_framework.views import APIView
@@ -22,12 +18,11 @@ from djoser.serializers import UsernameSerializer, PasswordSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import User, OTP
-from food_diaries.models import CalorieLog, Date
-from food_diaries.serializers import CalorieLogSerializer
+
 from profiles.models import NotificationPreferences
 from fudhouse.utils import hash_to_smaller_int, base64_encode
 from fudhouse.settings import BASE_URL, FRONTEND_URL
+from .models import User, OTP
 
 
 @api_view(['GET'])
@@ -47,8 +42,22 @@ class CustomUserViewSet(DjoserUserViewSet):
 
         self.perform_destroy(instance)
         response = Response(status=status.HTTP_204_NO_CONTENT)
-        response.delete_cookie(settings.SIMPLE_JWT['AUTH_COOKIE'])
-        response.delete_cookie(settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'])
+        response.set_cookie(
+                    settings.SIMPLE_JWT['AUTH_COOKIE'],
+                    "No access",
+                    max_age=0,
+                    secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                    httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+                    samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+                )
+        response.set_cookie(
+                    settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'],
+                    "No refresh",
+                    max_age=0,
+                    secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                    httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+                    samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+                )
         return response    
 
  # Override the Djoser User set password method to allow changing user's password without passing current_pasword payload
@@ -104,14 +113,6 @@ def user_otp(request):
         newOTP = OTP(user=user, otp=otp, expiry_time=int(time.time()) + 300) # OTP expires in 5 minutes
         newOTP.save()
 
-        # if 'otp' in request.session:
-        #     del request.session['otp']
-  
-        # request.session['otp'] = {
-        #     'otp': otp,
-        #     'expiry_time': int(time.time()) + 3600  # OTP expires after 1hr
-        # }
-
         send_mail(
             'Your OTP',
             f'Your OTP is: {otp}',
@@ -142,16 +143,6 @@ def user_otp(request):
         except OTP.DoesNotExist:
             return Response({'error': 'No OTP can be found for user'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # if 'otp' not in request.session:
-        #     return Response({'error': 'OTP session expired'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # otp_data = request.session['otp']
-
-        # current_time = int(time.time())
-        # if current_time > otp_data['expiry_time']:
-        #     # OTP has expired
-        #     del request.session['otp']
-        #     return Response({"error": "OTP has expired"}, status=status.HTTP_400_BAD_REQUEST)
         current_time = int(time.time())
         if current_time > storedOTP.expiry_time:
             # OTP has expired
@@ -182,13 +173,6 @@ class ActivateUser(APIView):
         if response.status_code == 403:
             return HttpResponseRedirect(frontend_url)
         return HttpResponseRedirect(frontend_url)
-
-# class GoogleAuthRedirect(View):
-#     permission_classes = [AllowAny]
-    
-#     def get(self, request):
-#         redirect_url = f"https://accounts.google.com/o/oauth2/v2/auth?client_id={settings.SOCIAL_AUTH_GOOGLE_OAUTH2_KEY}&response_type=code&scope=https://www.googleapis.com/auth/userinfo.profile%20https://www.googleapis.com/auth/userinfo.email&access_type=offline&redirect_uri={BASE_URL}/api/v1/auth/google/signup"
-#         return HttpResponseRedirect(redirect_url)
 
 
 class GoogleRedirectURIView(APIView):
@@ -461,6 +445,20 @@ class CustomTokenRefreshView(TokenRefreshView):
 class CustomLogoutView(APIView):
     def post(self, request, *args, **kwargs):
         response = Response(status=status.HTTP_204_NO_CONTENT)
-        response.delete_cookie(settings.SIMPLE_JWT['AUTH_COOKIE'])
-        response.delete_cookie(settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'])
+        response.set_cookie(
+                    settings.SIMPLE_JWT['AUTH_COOKIE'],
+                    "No access",
+                    max_age=0,
+                    secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                    httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+                    samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+                )
+        response.set_cookie(
+                    settings.SIMPLE_JWT['AUTH_COOKIE_REFRESH'],
+                    "No refresh",
+                    max_age=0,
+                    secure=settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                    httponly=settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+                    samesite=settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE'],
+                )
         return response
